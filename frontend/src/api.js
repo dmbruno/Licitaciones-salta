@@ -2,7 +2,9 @@ import axios from "axios";
 
 // ── Cliente con token automático ──────────────────────────────────────────────
 
-const http = axios.create();
+const http = axios.create({
+  baseURL: import.meta.env.VITE_API_URL ?? "",
+});
 
 http.interceptors.request.use(config => {
   const token = localStorage.getItem("ls_token");
