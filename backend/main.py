@@ -36,7 +36,7 @@ FRONTEND_ORIGINS = os.getenv(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],          # En prod Render/Vercel lo restringe por dominio
+    allow_origins=FRONTEND_ORIGINS,
     allow_methods=["*"],
     allow_headers=["*"],
 )
