@@ -1,0 +1,63 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #070b12;
+  --surface:   #0d1220;
+  --surface2:  #111827;
+  --surface3:  #1a2235;
+  --border:    #1e2d42;
+  --border2:   #253448;
+
+  --gold:      #f0a500;
+  --gold-dim:  #f0a50022;
+  --gold-mid:  #f0a50044;
+  --teal:      #00c4a0;
+  --red:       #f04060;
+  --green:     #00c47a;
+  --amber:     #f08000;
+
+  --text:      #c8d8e8;
+  --text-hi:   #e8f0f8;
+  --text-muted:#4e6278;
+  --text-dim:  #2e4258;
+
+  --font-body: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-head: 'Syne', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+
+  --radius-sm: 4px;
+  --radius:    8px;
+  --radius-lg: 12px;
+
+  --src-municipalidad: #4d9fff;
+  --src-compras_salta: #00c47a;
+  --src-boletin_oficial:#f0a500;
+  --src-comprar_gob:   #b07aff;
+}
+
+html, body { height: 100%; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  background-image:
+    radial-gradient(ellipse 80% 40% at 20% 0%, #0a1830 0%, transparent 60%),
+    radial-gradient(ellipse 60% 30% at 80% 100%, #0f1a10 0%, transparent 60%);
+}
+
+#root { min-height: 100vh; display: flex; flex-direction: column; }
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+button { cursor: pointer; border: none; font-family: var(--font-body); background: none; }
+input, select { font-family: var(--font-body); }
+a { color: var(--gold); text-decoration: none; }
+a:hover { color: var(--text-hi); }
