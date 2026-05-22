@@ -301,10 +301,11 @@ function LicCard({ lic, onVerPliego }) {
 // ─── Dashboard principal ──────────────────────────────────────────────────────
 
 function Dashboard({ user, onLogout, onGoAdmin }) {
-  const [allData, setAllData]     = useState([]);
-  const [loading, setLoading]     = useState(false);
-  const [error, setError]         = useState(null);
-  const [pligoUrl, setPligoUrl]   = useState(null);
+  const [allData, setAllData]       = useState([]);
+  const [loading, setLoading]       = useState(false);
+  const [error, setError]           = useState(null);
+  const [pligoUrl, setPligoUrl]     = useState(null);
+  const [sidebarOpen, setSidebar]   = useState(false);
 
   // Filtros
   const [dias, setDias]               = useState(7);
@@ -403,8 +404,20 @@ function Dashboard({ user, onLogout, onGoAdmin }) {
 
   return (
     <div className="app">
+      {/* ── Sidebar overlay (mobile) ── */}
+      {sidebarOpen && (
+        <div className="sidebar-overlay" onClick={() => setSidebar(false)} />
+      )}
+
       {/* ── Topbar ── */}
       <header className="topbar">
+        <button
+          className="btn-hamburger"
+          onClick={() => setSidebar(v => !v)}
+          aria-label="Filtros"
+        >
+          <span /><span /><span />
+        </button>
         <div className="logo">
           <span className="logo-title">Licitaciones<span>·</span>Salta</span>
           <span className="logo-sub">Monitor de compras</span>
@@ -449,7 +462,8 @@ function Dashboard({ user, onLogout, onGoAdmin }) {
 
       <div className="body-split">
         {/* ── Sidebar filtros ── */}
-        <aside className="sidebar">
+        <aside className={`sidebar ${sidebarOpen ? "sidebar-open" : ""}`}>
+          <button className="sidebar-close-btn" onClick={() => setSidebar(false)}>✕</button>
           <div className="sidebar-header">
             <span className="sidebar-header-title">Filtros</span>
             {activeCount > 0

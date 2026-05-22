@@ -214,6 +214,47 @@ export default function Admin({ onLogout, onBack }) {
           {error   && <div className="admin-error">{error}</div>}
 
           {!loading && (
+            /* ── Mobile cards ── */
+            <div className="user-cards">
+              {users.map(u => (
+                <div key={u.id} className={`user-card ${!u.activo ? "row-inactive" : ""}`}>
+                  <div className="user-card-top">
+                    <div className="user-card-info">
+                      <div className="user-card-username">
+                        {u.username}
+                        {u.es_admin && <span className="u-admin-badge">admin</span>}
+                      </div>
+                      <div className="user-card-nombre">{u.nombre || "—"}</div>
+                      <div className="user-card-email">{u.email || "—"}</div>
+                    </div>
+                    <span className={`status-dot ${u.activo ? "active" : "inactive"}`}>
+                      {u.activo ? "Activo" : "Inactivo"}
+                    </span>
+                  </div>
+                  <div className="user-card-bottom">
+                    <div className="user-card-meta">
+                      <span className={`plan-badge plan-${u.plan}`}>{u.plan}</span>
+                      <span className="user-card-date">{fmtDate(u.ultimo_acceso)}</span>
+                    </div>
+                    {!u.es_admin && (
+                      <div className="row-actions">
+                        <button
+                          className={`act-btn ${u.activo ? "act-disable" : "act-enable"}`}
+                          onClick={() => handleToggle(u.username)}
+                        >
+                          {u.activo ? "Pausar" : "Activar"}
+                        </button>
+                        <button className="act-btn act-delete" onClick={() => handleDelete(u.username)}>✕</button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {!loading && (
+            /* ── Desktop table ── */
             <div className="users-table-wrap">
               <table className="users-table">
                 <thead>
