@@ -54,5 +54,8 @@ export const createUser = (data) =>
 export const toggleUser = (username) =>
   http.patch(`/admin/users/${username}/toggle`).then(r => r.data);
 
+export const renewUser = (username) =>
+  http.patch(`/admin/users/${username}/renew`).then(r => r.data);
+
 export const deleteUser = (username) =>
   http.delete(`/admin/users/${username}`).then(r => r.data);

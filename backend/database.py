@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import sqlite3
-from datetime import datetime
+from datetime import datetime, date, timedelta
 from pathlib import Path
 from typing import Optional
 
@@ -19,18 +19,24 @@ def init_db() -> None:
     with _conn() as c:
         c.execute("""
             CREATE TABLE IF NOT EXISTS users (
-                id             INTEGER PRIMARY KEY AUTOINCREMENT,
-                username       TEXT    UNIQUE NOT NULL,
-                email          TEXT    DEFAULT '',
-                password_hash  TEXT    NOT NULL,
-                nombre         TEXT    DEFAULT '',
-                plan           TEXT    DEFAULT 'beta',
-                activo         INTEGER DEFAULT 1,
-                es_admin       INTEGER DEFAULT 0,
-                fecha_creacion TEXT    DEFAULT CURRENT_TIMESTAMP,
-                ultimo_acceso  TEXT
+                id                INTEGER PRIMARY KEY AUTOINCREMENT,
+                username          TEXT    UNIQUE NOT NULL,
+                email             TEXT    DEFAULT '',
+                password_hash     TEXT    NOT NULL,
+                nombre            TEXT    DEFAULT '',
+                plan              TEXT    DEFAULT 'beta',
+                activo            INTEGER DEFAULT 1,
+                es_admin          INTEGER DEFAULT 0,
+                fecha_creacion    TEXT    DEFAULT CURRENT_TIMESTAMP,
+                ultimo_acceso     TEXT,
+                fecha_vencimiento TEXT
             )
         """)
+        # Migración: agrega la columna si ya existía la tabla sin ella
+        try:
+            c.execute("ALTER TABLE users ADD COLUMN fecha_vencimiento TEXT")
+        except sqlite3.OperationalError:
+            pass  # ya existe
     _ensure_admin()
 
 
@@ -62,7 +68,7 @@ def list_users() -> list[dict]:
     with _conn() as c:
         rows = c.execute(
             """SELECT id, username, email, nombre, plan,
-                      activo, es_admin, fecha_creacion, ultimo_acceso
+                      activo, es_admin, fecha_creacion, ultimo_acceso, fecha_vencimiento
                FROM users ORDER BY fecha_creacion DESC"""
         ).fetchall()
         return [dict(r) for r in rows]
@@ -78,13 +84,14 @@ def create_user(
     plan: str = "beta",
 ) -> dict:
     from auth import hash_password
+    vencimiento = (date.today() + timedelta(days=30)).isoformat()
     with _conn() as c:
         c.execute(
-            "INSERT INTO users (username,email,password_hash,nombre,plan) VALUES (?,?,?,?,?)",
-            (username, email, hash_password(password), nombre, plan),
+            "INSERT INTO users (username,email,password_hash,nombre,plan,fecha_vencimiento) VALUES (?,?,?,?,?,?)",
+            (username, email, hash_password(password), nombre, plan, vencimiento),
         )
         row = c.execute(
-            "SELECT id,username,email,nombre,plan,activo,es_admin,fecha_creacion FROM users WHERE username=?",
+            "SELECT id,username,email,nombre,plan,activo,es_admin,fecha_creacion,fecha_vencimiento FROM users WHERE username=?",
             (username,),
         ).fetchone()
         return dict(row)
@@ -103,6 +110,25 @@ def toggle_user(username: str) -> bool:
             "UPDATE users SET activo = ? WHERE username = ?", (new_state, username)
         )
         return bool(new_state)
+
+
+def renew_user(username: str) -> str:
+    """Renueva la suscripción 30 días desde hoy y reactiva el usuario."""
+    nueva_fecha = (date.today() + timedelta(days=30)).isoformat()
+    with _conn() as c:
+        c.execute(
+            "UPDATE users SET activo = 1, fecha_vencimiento = ? WHERE username = ? AND es_admin = 0",
+            (nueva_fecha, username),
+        )
+    return nueva_fecha
+
+
+def pause_expired_user(username: str) -> None:
+    """Pausa un usuario vencido (llamado internamente por require_user)."""
+    with _conn() as c:
+        c.execute(
+            "UPDATE users SET activo = 0 WHERE username = ?", (username,)
+        )
 
 
 def delete_user(username: str) -> None:

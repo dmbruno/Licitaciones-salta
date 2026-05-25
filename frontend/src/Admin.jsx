@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { getUsers, createUser, toggleUser, deleteUser } from "./api";
+import { getUsers, createUser, toggleUser, renewUser, deleteUser } from "./api";
 import "./Admin.css";
 
 function generatePassword() {
@@ -10,6 +10,21 @@ function generatePassword() {
 function fmtDate(d) {
   if (!d) return "—";
   return d.replace("T", " ").slice(0, 16);
+}
+
+function diasRestantes(fechaVencimiento) {
+  if (!fechaVencimiento) return null;
+  const diff = Math.ceil((new Date(fechaVencimiento) - new Date()) / 86400000);
+  return diff;
+}
+
+function VenceBadge({ fecha }) {
+  const dias = diasRestantes(fecha);
+  if (dias === null) return <span className="dias-badge dias-sin">—</span>;
+  if (dias < 0)  return <span className="dias-badge dias-vencido">Vencido</span>;
+  if (dias <= 5) return <span className="dias-badge dias-critico">{dias}d</span>;
+  if (dias <= 10) return <span className="dias-badge dias-alerta">{dias}d</span>;
+  return <span className="dias-badge dias-ok">{dias}d</span>;
 }
 
 export default function Admin({ onLogout, onBack }) {
@@ -64,6 +79,11 @@ export default function Admin({ onLogout, onBack }) {
 
   async function handleToggle(username) {
     await toggleUser(username);
+    load();
+  }
+
+  async function handleRenew(username) {
+    await renewUser(username);
     load();
   }
 
@@ -234,10 +254,15 @@ export default function Admin({ onLogout, onBack }) {
                   <div className="user-card-bottom">
                     <div className="user-card-meta">
                       <span className={`plan-badge plan-${u.plan}`}>{u.plan}</span>
+                      {u.es_admin
+                        ? <span className="dias-badge dias-ok">∞</span>
+                        : <VenceBadge fecha={u.fecha_vencimiento} />
+                      }
                       <span className="user-card-date">{fmtDate(u.ultimo_acceso)}</span>
                     </div>
                     {!u.es_admin && (
                       <div className="row-actions">
+                        <button className="act-btn act-renew" onClick={() => handleRenew(u.username)}>↺ 30d</button>
                         <button
                           className={`act-btn ${u.activo ? "act-disable" : "act-enable"}`}
                           onClick={() => handleToggle(u.username)}
@@ -262,6 +287,7 @@ export default function Admin({ onLogout, onBack }) {
                     <th>Usuario</th>
                     <th>Nombre / Email</th>
                     <th>Plan</th>
+                    <th>Vence</th>
                     <th>Último acceso</th>
                     <th>Estado</th>
                     <th>Acciones</th>
@@ -281,6 +307,12 @@ export default function Admin({ onLogout, onBack }) {
                       <td>
                         <span className={`plan-badge plan-${u.plan}`}>{u.plan}</span>
                       </td>
+                      <td>
+                        {u.es_admin
+                          ? <span className="dias-badge dias-ok">∞</span>
+                          : <VenceBadge fecha={u.fecha_vencimiento} />
+                        }
+                      </td>
                       <td className="u-date">{fmtDate(u.ultimo_acceso)}</td>
                       <td>
                         <span className={`status-dot ${u.activo ? "active" : "inactive"}`}>
@@ -291,9 +323,16 @@ export default function Admin({ onLogout, onBack }) {
                         {!u.es_admin && (
                           <div className="row-actions">
                             <button
+                              className="act-btn act-renew"
+                              onClick={() => handleRenew(u.username)}
+                              title="Renovar 30 días"
+                            >
+                              ↺ 30d
+                            </button>
+                            <button
                               className={`act-btn ${u.activo ? "act-disable" : "act-enable"}`}
                               onClick={() => handleToggle(u.username)}
-                              title={u.activo ? "Desactivar" : "Activar"}
+                              title={u.activo ? "Pausar" : "Activar"}
                             >
                               {u.activo ? "Pausar" : "Activar"}
                             </button>

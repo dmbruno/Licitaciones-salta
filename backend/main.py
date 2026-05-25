@@ -17,7 +17,8 @@ from cache import cache
 from auth import verify_password, create_token, decode_token
 from database import (
     init_db, get_user, list_users, create_user,
-    toggle_user, delete_user, update_ultimo_acceso,
+    toggle_user, renew_user, delete_user,
+    update_ultimo_acceso, pause_expired_user,
 )
 from scrapers.municipalidad import MunicipalidadScraper
 from scrapers.compras_salta import ComprasSaltaScraper
@@ -64,7 +65,20 @@ def require_user(creds: HTTPAuthorizationCredentials = Depends(security)) -> dic
     if not payload:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token inválido o expirado")
     user = get_user(payload["sub"])
-    if not user or not user["activo"]:
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Usuario no encontrado")
+
+    # Lazy check: pausar automáticamente si la suscripción venció
+    if not user["es_admin"] and user.get("fecha_vencimiento"):
+        from datetime import date
+        if user["fecha_vencimiento"] < date.today().isoformat():
+            pause_expired_user(user["username"])
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Suscripción vencida. Contactá al administrador para renovar."
+            )
+
+    if not user["activo"]:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Usuario inactivo")
     return user
 
@@ -132,6 +146,14 @@ def admin_create_user(body: CreateUserBody, admin: dict = Depends(require_admin)
     if existing:
         raise HTTPException(status_code=400, detail="El usuario ya existe")
     return create_user(body.username, body.password, body.nombre, body.email, body.plan)
+
+
+@app.patch("/admin/users/{username}/renew")
+def admin_renew_user(username: str, admin: dict = Depends(require_admin)):
+    if username == "admin":
+        raise HTTPException(status_code=400, detail="No se puede modificar el admin")
+    nueva_fecha = renew_user(username)
+    return {"username": username, "fecha_vencimiento": nueva_fecha, "activo": True}
 
 
 @app.patch("/admin/users/{username}/toggle")

@@ -315,6 +315,32 @@
 .act-disable:hover { background: rgba(240,165,0,.2); }
 .act-delete  { background: rgba(240,64,96,.1);  color: var(--red); border-color: rgba(240,64,96,.25); }
 .act-delete:hover  { background: rgba(240,64,96,.2); }
+.act-renew   { background: rgba(0,196,160,.1);  color: var(--teal); border-color: rgba(0,196,160,.25); font-family: var(--font-mono); }
+.act-renew:hover   { background: rgba(0,196,160,.2); }
+
+/* ── Días badge ── */
+.dias-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: .3px;
+  white-space: nowrap;
+}
+.dias-ok      { background: rgba(0,196,122,.10); color: #00c47a; border: 1px solid rgba(0,196,122,.25); }
+.dias-alerta  { background: rgba(240,165,0,.10); color: var(--gold); border: 1px solid rgba(240,165,0,.25); }
+.dias-critico { background: rgba(240,64,96,.10); color: var(--red); border: 1px solid rgba(240,64,96,.25); animation: pulse-badge 1.5s ease-in-out infinite; }
+.dias-vencido { background: rgba(240,64,96,.15); color: var(--red); border: 1px solid rgba(240,64,96,.4); font-weight: 800; }
+.dias-sin     { background: transparent; color: var(--text-dim); border: 1px solid var(--border); }
+
+@keyframes pulse-badge {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: .55; }
+}
 
 /* ── Mobile user cards (shown instead of table on small screens) ── */
 .user-cards { display: none; }
