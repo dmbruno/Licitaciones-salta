@@ -63,10 +63,11 @@ const FUENTES = [
 const FUENTE_MAP = Object.fromEntries(FUENTES.map(f => [f.value, f]));
 
 const PERIODOS = [
-  { value: 1,  label: "Hoy" },
-  { value: 7,  label: "Esta semana" },
-  { value: 30, label: "Este mes" },
-  { value: 90, label: "3 meses" },
+  { value: 1,      label: "Hoy" },
+  { value: 7,      label: "Esta semana" },
+  { value: 30,     label: "Este mes" },
+  { value: 90,     label: "3 meses" },
+  { value: "year", label: "Apertura este año" },
 ];
 
 const TIPOS_GRUPOS = [
@@ -322,7 +323,7 @@ function Dashboard({ user, onLogout, onGoAdmin }) {
   const cargar = useCallback(async () => {
     setLoading(true); setError(null);
     try {
-      const data = await getLicitaciones(dias);
+      const data = await getLicitaciones(dias === "year" ? 365 : dias);
       setAllData(data);
     } catch {
       setError("No se pudo conectar con el backend en puerto 8000.");
@@ -336,7 +337,12 @@ function Dashboard({ user, onLogout, onGoAdmin }) {
   // Filtrado client-side
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
+    const currentYear = new Date().getFullYear();
     return allData.filter(l => {
+      if (dias === "year") {
+        if (!l.fecha_apertura) return false;
+        if (new Date(l.fecha_apertura).getFullYear() !== currentYear) return false;
+      }
       if (fuentes.size && !fuentes.has(l.fuente)) return false;
       if (tipos.size   && !tipos.has(getTipoKey(l.tipo))) return false;
       if (estados.size && !estados.has(l.estado?.toLowerCase())) return false;
@@ -344,7 +350,7 @@ function Dashboard({ user, onLogout, onGoAdmin }) {
       if (q && !l.titulo.toLowerCase().includes(q) && !l.organismo.toLowerCase().includes(q)) return false;
       return true;
     });
-  }, [allData, fuentes, tipos, estados, soloConPliego, query]);
+  }, [allData, fuentes, tipos, estados, soloConPliego, query, dias]);
 
   // Conteos por fuente (sobre datos filtrados)
   const countByFuente = useMemo(() =>

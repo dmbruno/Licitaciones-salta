@@ -198,7 +198,7 @@ async def _fetch_all(dias: int) -> list[Licitacion]:
 
 @app.get("/api/licitaciones", response_model=list[Licitacion])
 async def get_licitaciones(
-    dias: int = Query(default=7, ge=1, le=90),
+    dias: int = Query(default=7, ge=1, le=365),
     user: dict = Depends(require_user),
 ):
     return await _fetch_all(dias)

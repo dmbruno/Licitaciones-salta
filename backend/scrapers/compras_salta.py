@@ -31,7 +31,13 @@ def _parse_fecha(texto: str) -> Optional[date]:
     if not m:
         return None
     try:
-        return datetime.strptime(m.group(1), "%d/%m/%Y").date()
+        d = datetime.strptime(m.group(1), "%d/%m/%Y").date()
+        if d.year <= 2099:
+            return d
+        # Año > 2099: el sitio usa año de 2 dígitos y los dígitos de la hora
+        # se concatenaron al año (ej: "22/06/22 00:30" → "22/06/2200")
+        parts = m.group(1).split("/")
+        return datetime.strptime(f"{parts[0]}/{parts[1]}/{parts[2][:2]}", "%d/%m/%y").date()
     except ValueError:
         return None
 
